@@ -884,16 +884,26 @@ class InstanceConfig:
         """
         return self.config_dict.get("role")
 
-    def get_pool(self) -> str:
+    def get_pool(
+        self, system_paasta_config: Optional["SystemPaastaConfig"] = None
+    ) -> str:
         """Which pool of nodes this job should run on. This can be used to mitigate noisy neighbors, by putting
         particularly noisy or noise-sensitive jobs into different pools.
 
-        This is implemented with an attribute "pool" on each mesos slave and by adding a constraint or node selector.
-
-        Eventually this may be implemented with Mesos roles, once a framework can register under multiple roles.
+        This is implemented with an attribute on each kube node and by adding a node selector.
 
         :returns: the "pool" attribute in your config dict, or the string "default" if not specified."""
-        return self.config_dict.get("pool", "default")
+        pool = self.config_dict.get("pool")
+        if pool is None:
+            if system_paasta_config is None:
+                pool = "default"
+            else:
+                potential_override = system_paasta_config.get_default_pool_override()
+                pool = (
+                    potential_override if potential_override is not None else "default"
+                )
+
+        return pool
 
     def get_pool_constraints(self) -> List[Constraint]:
         pool = self.get_pool()
@@ -2602,6 +2612,14 @@ class SystemPaastaConfig:
         return self.config_dict.get(
             "mark_for_deployment_should_ping_for_unhealthy_pods", True
         )
+
+    def get_default_pool_override(self) -> Optional[str]:
+        """Get the (potentially) configured default pool override.
+
+        There are certain applications that run on PaaSTA that may generally not want to
+        default to running on the default pool if no pool attribute was configured in soaconfigs.
+        """
+        return self.config_dict.get("default_paasta_pool_override")
 
 
 def _run(
