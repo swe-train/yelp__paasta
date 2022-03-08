@@ -56,12 +56,18 @@ def test_run_success_with_commit(
     args = mock.MagicMock()
     args.commit = "0" * 40
     args.service = "fake_service"
-    assert paasta_cook_image(args) == 0
+
+    with mock.patch(
+        "paasta_tools.utils.get_service_docker_registry",
+        autospec=True,
+        return_value="fake_registry",
+    ):
+        assert paasta_cook_image(args) == 0
 
     mock_log_audit.assert_called_once_with(
         action="cook-image",
         action_details={
-            "tag": f"docker-paasta.yelpcorp.com:443/services-fake_service:paasta-{args.commit}"
+            "tag": f"fake_registry/services-fake_service:paasta-{args.commit}"
         },
         service="fake_service",
     )
@@ -80,6 +86,7 @@ def test_run_makefile_fail(
 
     args = mock.MagicMock()
     args.service = "fake_service"
+    args.commit = None
 
     assert paasta_cook_image(args) == 1
     assert not mock_log_audit.called
@@ -103,6 +110,7 @@ def test_run_keyboard_interrupt(
 
     args = mock.MagicMock()
     args.service = "fake_service"
+    args.commit = None
 
     assert paasta_cook_image(args) == 2
     assert not mock_log_audit.called
