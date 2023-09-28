@@ -83,6 +83,7 @@ metadata:
   labels:
     spark: {spark_pod_label}
 spec:
+  dnsPolicy: Default
   affinity:
     podAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
@@ -733,6 +734,11 @@ def _parse_user_spark_args(
             )
             sys.exit(1)
         user_spark_opts["spark.dynamicAllocation.enabled"] = "true"
+
+    # for some reason, we need to set this as both a spark arg AND in the
+    # pod template file for spark to launch executors with the correct DNS
+    # policy
+    user_spark_opts["spark.kubernetes.executor.spec.dnsPolicy"] = "default"
 
     return user_spark_opts
 

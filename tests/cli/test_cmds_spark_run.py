@@ -330,7 +330,11 @@ def test_get_spark_env(
         (
             "spark.cores.max=1  spark.executor.memory=24g",
             False,
-            {"spark.cores.max": "1", "spark.executor.memory": "24g"},
+            {
+                "spark.cores.max": "1",
+                "spark.executor.memory": "24g",
+                "spark.kubernetes.executor.spec.dnsPolicy": "default",
+            },
         ),
         (
             "spark.cores.max=1  spark.executor.memory=24g",
@@ -339,6 +343,7 @@ def test_get_spark_env(
                 "spark.cores.max": "1",
                 "spark.executor.memory": "24g",
                 "spark.dynamicAllocation.enabled": "true",
+                "spark.kubernetes.executor.spec.dnsPolicy": "default",
             },
         ),
         ("spark.cores.max", False, None),
