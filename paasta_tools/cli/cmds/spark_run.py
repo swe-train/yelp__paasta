@@ -738,7 +738,7 @@ def _parse_user_spark_args(
     # for some reason, we need to set this as both a spark arg AND in the
     # pod template file for spark to launch executors with the correct DNS
     # policy
-    user_spark_opts["spark.kubernetes.executor.spec.dnsPolicy"] = "default"
+    # user_spark_opts["spark.kubernetes.executor.spec.dnsPolicy"] = "Default"
 
     return user_spark_opts
 
