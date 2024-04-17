@@ -101,7 +101,6 @@ async def check_max_instances(
             ):
                 threshold = job_config.get_autoscaling_max_instances_alert_threshold()
                 setpoint = job_config.get_autoscaling_params()["setpoint"]
-                metric_threshold_target_ratio = threshold / setpoint
 
                 status = pysensu_yelp.Status.UNKNOWN
                 output = "how are there no metrics for this thing?"
@@ -109,23 +108,28 @@ async def check_max_instances(
                     current_value = suffixed_number_value(metric["current_value"])
                     target_value = suffixed_number_value(metric["target_value"])
 
-                    if current_value / target_value > metric_threshold_target_ratio:
+                    utilization = setpoint * current_value / target_value
+
+                    if threshold == setpoint:
+                        threshold_description = f"setpoint ({threshold})"
+                    else:
+                        threshold_description = (
+                            f"max_instances_alert_threshold ({threshold})"
+                        )
+
+                    if utilization > threshold:
                         status = pysensu_yelp.Status.CRITICAL
                         output = (
                             f"{service}.{instance}: Service is at max_instances, and"
-                            " ratio of current value to target value"
-                            f" ({current_value} / {target_value}) is greater than the"
-                            " ratio of max_instances_alert_threshold to setpoint"
-                            f" ({threshold} / {setpoint})"
+                            f" utilization ({utilization}) is greater than"
+                            f" {threshold_description}."
                         )
                     else:
                         status = pysensu_yelp.Status.OK
                         output = (
                             f"{service}.{instance}: Service is at max_instances, but"
-                            " ratio of current value to target value"
-                            f" ({current_value} / {target_value}) is below the ratio of"
-                            f" max_instances_alert_threshold to setpoint ({threshold} /"
-                            f" {setpoint})"
+                            f" utilization ({utilization}) is less than"
+                            f" {threshold_description}."
                         )
             else:
                 status = pysensu_yelp.Status.OK
