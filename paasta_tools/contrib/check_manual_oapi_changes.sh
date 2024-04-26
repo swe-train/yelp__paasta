@@ -1,5 +1,5 @@
 #!/bin/bash
-set -uo pipefail
+set -uxo pipefail
 
 diff_names=$(git diff origin/master --name-only)
 schema_touched=$(echo "$diff_names" | grep 'paasta_tools/api/api_docs/oapi.yaml')
@@ -15,7 +15,7 @@ if [ ! -z "$api_touched" -a -z "$schema_touched" ]; then
     exit 1
 fi
 
-make openapi-codegen &>/dev/null
+make openapi-codegen
 diff=$(git diff --name-only | grep paasta_tools/paastaapi)
 if [ ! -z "$diff" ]; then
     echo "paasta_tools/paastaapi codegen has a diff, either commit the changes or fix oapi.yaml:" >&2

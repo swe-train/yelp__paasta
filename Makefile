@@ -30,6 +30,10 @@ else
 	export INDEX_URL_BUILD_ARG ?= PIP_INDEX_URL
 endif
 
+ifdef CI
+	export DOCKER_OPT_ARGS := --user `id -u`:`id -g`
+endif
+
 .PHONY: all docs test itest k8s_itests quick-test
 
 dev: .paasta/bin/activate
